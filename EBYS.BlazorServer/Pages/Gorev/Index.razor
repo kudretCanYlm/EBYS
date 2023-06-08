@@ -1,0 +1,318 @@
+﻿@page "/gorev"
+@using Blazored.FluentValidation
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Görev;
+@using EBYS.BusinessLayer.Dtos.Personel;
+@inject IJSRuntime JS
+@inject IPersonelService _personelService;
+@inject IGorevService _gorevService;
+@attribute [Authorize(Roles = "Admin,User")]
+
+
+<h2>Görev İşlemleri</h2>
+<PageTitle>Görev</PageTitle>
+
+
+<button @onclick="ShowCreateModal" class="btn btn-success mt-3 mb-1">
+	Görev Ekle
+</button>
+
+@if (gorevList == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Görev</th>
+				<th>Atanan Personel</th>
+				<th>Açıklana</th>
+				<th>Başlangıç Tarihi</th>
+				<th>Bitiş Tarihi</th>
+				<th>Durum</th>
+				<th>Sil</th>
+				<th>Güncelle</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var gorev in gorevList)
+			{
+				<tr>
+					<td>@gorev.Ad</td>
+					<td>@gorev.PersonelAd</td>
+					<td>@gorev.Aciklama</td>
+					<td>@gorev.BaslangicTarihi</td>
+					<td>@gorev.BitisTarihi</td>
+					<td>
+						@if (gorev.TamamlandiMi)
+						{
+							<span style="color:green">Tamamlandı</span>
+						}
+						else
+						{
+							<span style="color:red">Tamamlanmadı</span>
+
+						}
+					</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeleteGorev(gorev.Id)">
+							Sil
+						</button>
+					</td>
+					<td>
+						<button class="btn btn-warning" @onclick="()=>ShowUpdateModal(gorev)">
+							Güncelle
+						</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (showCreateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Görev Ekle</h5>
+					<button type="button" class="close" @onclick="CloseCreateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@createDto" OnValidSubmit="CreateData">
+						<FluentValidationValidator />
+
+						<div class="form-group">
+							<label for="Ad">Görev Adı:</label>
+							<input type="text" @bind="createDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Ad)" />
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Görev Açıklama:</label>
+							<input type="text" @bind="createDto.Aciklama" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Aciklama)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Başlangıç Tarihi:</label>
+							<input type="datetime" @bind="createDto.BaslangicTarihi" class="form-control" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Bitiş Tarihi:</label>
+							<input type="datetime" @bind="createDto.BitisTarihi" class="form-control" />
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Görev Personeli:</label>
+							<select @bind="@createDto.PersonelId" class="form-control">
+								@if (personelList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Personel Seç</option>
+
+									@foreach (var personel in personelList)
+									{
+										<option value="@personel.Id">@personel.Ad @personel.Soyad @personel.Id</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>createDto.PersonelId)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@if (showUpdateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Görev Güncelle</h5>
+					<button type="button" class="close" @onclick="CloseUpdateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@updateDto" OnValidSubmit="SaveData">
+						<FluentValidationValidator />
+
+						<div class="form-group">
+							<label for="Ad">Görev Adı:</label>
+							<input type="text" @bind="updateDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Ad)" />
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Görev Açıklama:</label>
+							<input type="text" @bind="updateDto.Aciklama" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Aciklama)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Başlangıç Tarihi:</label>
+							<input type="datetime" @bind="updateDto.BaslangicTarihi" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.BaslangicTarihi)" />
+
+						</div>
+						<div class="form-group">
+							<label for="Ad">Bitiş Tarihi:</label>
+							<input type="datetime" @bind="updateDto.BitisTarihi" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.BitisTarihi)" />
+
+						</div>
+
+						<div class="form-group">
+							<label>Tamamlandı mi</label>
+							<input type="checkbox"  @bind="@updateDto.TamamlandiMi" />
+						</div>
+
+
+						<div class="form-group">
+							<label>Görev Personeli:</label>
+							<select @bind="@updateDto.PersonelId" class="form-control">
+								@if (personelList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Personel Seç</option>
+
+									@foreach (var personel in personelList)
+									{
+										<option value="@personel.Id">@personel.Ad @personel.Soyad @personel.Id</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>updateDto.PersonelId)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseUpdateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+	private IEnumerable<GorevDto> gorevList;
+	private IEnumerable<PersonelDto> personelList;
+
+	private bool showUpdateModal = false;
+	private bool showCreateModal = false;
+
+	private UpdateGorevDto updateDto = new();
+	private CreateGorevDto createDto = new();
+
+	private async Task SetPersonelList()
+	{
+		personelList = await _personelService.GetPersonels();
+	}
+
+	private async Task SetGorevList()
+	{
+		gorevList = await _gorevService.GetGorevs();
+	}
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		createDto.BaslangicTarihi = DateTime.Now;
+		createDto.BitisTarihi = DateTime.Now.AddDays(1);
+
+		await SetGorevList();
+	}
+
+	private async Task DeleteGorev(Guid id)
+	{
+		var status = await JS.InvokeAsync<bool>("deletePopUp");
+
+		if (status == true)
+		{
+			var result = await _gorevService.DeleteGorev(id);
+			await JS.InvokeVoidAsync("resultPopUp", result);
+			if (result)
+				await SetGorevList();
+		}
+	}
+
+	private async Task ShowUpdateModal(GorevDto gorevDto)
+	{
+		await SetPersonelList();
+
+		updateDto.Id = gorevDto.Id;
+		updateDto.Ad = gorevDto.Ad;
+		updateDto.Aciklama = gorevDto.Aciklama;
+		updateDto.BaslangicTarihi = gorevDto.BaslangicTarihi;
+		updateDto.BitisTarihi = gorevDto.BitisTarihi;
+		updateDto.TamamlandiMi = gorevDto.TamamlandiMi;
+		updateDto.PersonelId = gorevDto.PersonelId;
+
+		await JS.InvokeVoidAsync("openUpdateModal");
+		showUpdateModal = true;
+	}
+
+	private async Task CloseUpdateModal()
+	{
+		await JS.InvokeVoidAsync("closeUpdateModal");
+		showUpdateModal = false;
+	}
+
+	private async Task SaveData()
+	{
+
+		var result = await _gorevService.UpdateGorev(updateDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", result);
+
+		if (result)
+		{
+			await SetGorevList();
+			await CloseUpdateModal();
+		}
+	}
+
+	private async Task ShowCreateModal()
+	{
+		await SetPersonelList();
+		await JS.InvokeVoidAsync("openCreateModal");
+		showCreateModal = true;
+	}
+
+	private async Task CloseCreateModal()
+	{
+		await JS.InvokeVoidAsync("closeCreateModal");
+		showCreateModal = false;
+	}
+
+	private async Task CreateData()
+	{
+		await _gorevService.CreateGorev(createDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", true);
+
+		await SetGorevList();
+		await CloseCreateModal();
+	}
+}

@@ -1,0 +1,242 @@
+﻿@page "/sirket"
+@using Blazored.FluentValidation
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Sirket;
+@inject ISirketService _sirketService;
+@inject IJSRuntime JS
+@attribute [Authorize(Roles = "Admin")]
+
+<h2>Şirket İşlemleri</h2>
+<PageTitle>Şirket</PageTitle>
+
+<button @onclick="ShowCreateModal" class="btn btn-success mt-3 mb-1">
+	Sirket Ekle
+</button>
+
+<table id="myDataTable" class="table">
+	<thead>
+		<tr>
+			<th>Şirket Id</th>
+			<th>Şirket Adı</th>
+			<th>Şirket Hakkında</th>
+			<th>Şirket Address</th>
+			<th>Sil</th>
+			<th>Güncelle</th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (sirketList == null)
+		{
+			<tr>
+				<td>yükleniyor</td>
+				<td>yükleniyor</td>
+				<td>yükleniyor</td>
+				<td>yükleniyor</td>
+				<td>yükleniyor</td>
+				<td>
+					yükleniyor
+				</td>
+				<td>
+					yükleniyors
+				</td>
+			</tr>
+		}
+		else
+		{
+
+			@foreach (var sirket in sirketList)
+			{
+				<tr>
+					<td>@sirket.Id</td>
+					<td>@sirket.Ad</td>
+					<td>@sirket.Detay</td>
+					<td>@sirket.Address</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeleteSirket(sirket.Id)">
+							Sil
+						</button>
+					</td>
+					<td>
+						<button class="btn btn-warning" @onclick="()=>ShowUpdateModal(sirket)">
+							Güncelle
+						</button>
+					</td>
+				</tr>
+			}
+
+		}
+	</tbody>
+</table>
+@if (showUpdateModal)
+{
+	<div id="updateModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Departman Güncelle</h5>
+					<button type="button" class="close" @onclick="CloseUpdateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@updateDto" OnValidSubmit="SaveData">
+						<FluentValidationValidator />
+						<div class="form-group">
+							<label for="Ad">Şirket Adı:</label>
+							<input type="text" for="Ad" name="Ad" @bind="updateDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Ad)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Sirket Detay:</label>
+							<input type="text" @bind="updateDto.Detay" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Detay)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Sirket Address:</label>
+							<input type="text" @bind="updateDto.Address" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Address)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseUpdateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+
+@if (showCreateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Şirket Ekle</h5>
+					<button type="button" class="close" @onclick="CloseCreateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@createDto" OnValidSubmit="CreateData">
+						<FluentValidationValidator />
+						<div class="form-group">
+							<label for="Ad">Sirket Adı:</label>
+							<input type="text" @bind="createDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Ad)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Sirket Detay:</label>
+							<input type="text" @bind="createDto.Detay" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Detay)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Sirket Address:</label>
+							<input type="text" @bind="createDto.Address" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Address)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private IEnumerable<SirketDto> sirketList;
+	private bool showUpdateModal = false;
+	private bool showCreateModal = false;
+
+	private UpdateSirketDto updateDto = new();
+	private CreateSirketDto createDto = new();
+
+	private async Task SetSirketList()
+	{
+		sirketList = await _sirketService.GetSirkets();
+
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await SetSirketList();
+
+
+	}
+
+	private async Task DeleteSirket(Guid id)
+	{
+		var status = await JS.InvokeAsync<bool>("deletePopUp");
+
+		if (status == true)
+		{
+			var result = await _sirketService.DeleteSiket(id);
+			await JS.InvokeVoidAsync("resultPopUp", result);
+			if (result)
+				await SetSirketList();
+		}
+
+	}
+
+	private async Task ShowUpdateModal(SirketDto sirketDto)
+	{
+		updateDto.Id = sirketDto.Id;
+		updateDto.Ad = sirketDto.Ad;
+		updateDto.Detay = sirketDto.Detay;
+		updateDto.Address = sirketDto.Address;
+
+		await JS.InvokeVoidAsync("openUpdateModal");
+		showUpdateModal = true;
+	}
+
+	private async Task CloseUpdateModal()
+	{
+		await JS.InvokeVoidAsync("closeUpdateModal");
+		showUpdateModal = false;
+	}
+
+	private async Task ShowCreateModal()
+	{
+		await JS.InvokeVoidAsync("openCreateModal");
+		showCreateModal = true;
+	}
+
+	private async Task CloseCreateModal()
+	{
+		await JS.InvokeVoidAsync("closeCreateModal");
+		showCreateModal = false;
+	}
+
+	private async Task SaveData()
+	{
+
+		var result = await _sirketService.UpdateSiket(updateDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", result);
+
+		if (result)
+		{
+			await SetSirketList();
+			await CloseUpdateModal();
+		}
+	}
+
+	private async Task CreateData()
+	{
+		await _sirketService.AddSirket(createDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", true);
+
+		await SetSirketList();
+		await CloseCreateModal();
+	}
+
+
+}

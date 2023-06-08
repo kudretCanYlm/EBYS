@@ -1,0 +1,161 @@
+﻿@page "/kullanici"
+@using Blazored.FluentValidation
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Kullanici;
+@using EBYS.EntityLayer.Concrete;
+@using Microsoft.AspNetCore.Authorization;
+@using System.Security.Claims;
+@attribute [Authorize(Roles = "Admin")]
+@inject IKullaniciService _kullaniciService;
+@inject IJSRuntime JS
+@inject IHttpContextAccessor IHttpContextAccessor
+
+<h2>Kullanıcı İşlemleri</h2>
+<PageTitle>Kullanıcı</PageTitle>
+
+<button @onclick="ShowCreateModal" class="btn btn-success mt-3 mb-1">
+	Kullanıcı Ekle
+</button>
+
+@if (kullaniciList == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Kullanıcı Id</th>
+				<th>Kullanıcı Adı</th>
+				<th>Kullanıcı Rolü</th>
+				<th>Sil</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var kullanici in kullaniciList)
+			{
+				<tr>
+					<td>@kullanici.Id</td>
+					<td>@kullanici.Ad</td>
+					<td>@Enum.GetName(kullanici.Role)</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeleteKullanici(kullanici.Id)">
+							sil
+						</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (showCreateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Kullanıcı Ekle</h5>
+					<button type="button" class="close" @onclick="CloseCreateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@createDto" OnValidSubmit="CreateData">
+						<FluentValidationValidator />
+
+						<div class="form-group">
+							<label for="Ad">Adı:</label>
+							<input type="text" @bind="createDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Ad)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Kullanıcı Adı:</label>
+							<input type="text" @bind="createDto.KullaniciAdi" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.KullaniciAdi)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Kullanıcı Şifre:</label>
+							<input type="password" @bind="createDto.Sifre" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Sifre)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Personel Departman:</label>
+							<select @bind="@createDto.Role" class="form-control">
+								@foreach (var roleValue in Enum.GetValues(typeof(RoleEnum)))
+								{
+									<option value="@roleValue">@Enum.GetName(typeof(RoleEnum),roleValue)</option>
+								}
+							</select>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private IEnumerable<KullaniciListDto> kullaniciList;
+
+	private bool showUpdateModal = false;
+	private bool showCreateModal = false;
+	private string userId;
+
+	private CreateKullaniciDto createDto = new();
+
+
+	private async Task SetKullaniciList()
+	{
+		kullaniciList = await _kullaniciService.GetKullanicilar();
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
+		await SetKullaniciList();
+	}
+
+	private async Task DeleteKullanici(Guid id)
+	{
+		var status = await JS.InvokeAsync<bool>("deletePopUp");
+
+		if (status == true)
+		{
+			var result = await _kullaniciService.DeleteKullanici(id, Guid.Parse(userId));
+			await JS.InvokeVoidAsync("resultPopUp", result);
+			if (result)
+				await SetKullaniciList();
+		}
+	}
+
+	private async Task ShowCreateModal()
+	{
+		await JS.InvokeVoidAsync("openCreateModal");
+		showCreateModal = true;
+	}
+
+	private async Task CloseCreateModal()
+	{
+		await JS.InvokeVoidAsync("closeCreateModal");
+		showCreateModal = false;
+	}
+
+	private async Task CreateData()
+	{
+		var result= await _kullaniciService.CreateKullanici(createDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", result);
+
+		await SetKullaniciList();
+		await CloseCreateModal();
+	}
+
+}

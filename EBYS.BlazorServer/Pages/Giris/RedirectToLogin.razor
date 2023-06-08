@@ -1,0 +1,19 @@
+﻿@page "/logout"
+@using Microsoft.AspNetCore.Authentication.Cookies;
+@using Microsoft.AspNetCore.Authentication;
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject IHttpContextAccessor IHttpContextAccessor
+
+<h3>RedirectToLogin</h3>
+
+<p>
+	Yükleniyor ...
+</p>
+@code {
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await JS.InvokeVoidAsync("redirectToLogin");
+	}
+}

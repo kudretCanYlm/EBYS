@@ -1,0 +1,23 @@
+﻿@page "/"
+@using System.Security.Claims;
+@attribute [Authorize]
+@inject IHttpContextAccessor IHttpContextAccessor
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world! @username </h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+@code{
+
+	string username = "";
+
+	protected override void OnInitialized()
+	{
+		username = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+	}
+
+}

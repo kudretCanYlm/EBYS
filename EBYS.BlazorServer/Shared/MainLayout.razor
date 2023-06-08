@@ -1,0 +1,59 @@
+﻿@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Kullanici;
+@using System.Security.Claims;
+@inherits LayoutComponentBase
+@inject IHttpContextAccessor IHttpContextAccessor
+@inject IKullaniciService _kullaniciService
+
+<PageTitle>EBYS.BlazorServer</PageTitle>
+
+<div class="page">
+	<div class="sidebar">
+		<NavMenu />
+	</div>
+
+	<main>
+		<div style="display:flex;width:100%;align-items:center;justify-content:flex-end">
+		@if (kullaniciListDto==null)
+		{
+				<div class="card" style="width: 12rem;">
+					<div class="card-body">
+						<div class="d-flex flex-column align-items-center">
+							<span  class="oi text-black oi-person fs-5" aria-hidden="true"></span>
+							<span class="ml-2 text-black">Loading</span>
+							<span class="ml-2 text-black">Loading</span>
+						</div>
+					</div>
+				</div>
+		}
+		else
+		{
+			<NavLink class="nav-link" href="auth" >
+				<div class="card" style="width: 12rem;">
+					<div class="card-body">
+						<div class="d-flex flex-column align-items-center">
+							<span  class="oi text-black oi-person fs-5" aria-hidden="true"></span>
+								<span class="ml-2 text-black">@kullaniciListDto.Ad</span>
+								<span class="ml-2 text-black">@Enum.GetName(kullaniciListDto.Role)</span>
+						</div>
+					</div>
+				</div>
+		</NavLink>
+		}
+		</div>
+		<article class="content px-4">
+			@Body
+		</article>
+	</main>
+</div>
+@code
+{
+	private KullaniciListDto kullaniciListDto;
+
+	protected override async Task OnInitializedAsync()
+	{
+		string userId = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
+		kullaniciListDto = await _kullaniciService.GetKullanici(Guid.Parse(userId));
+	}
+}

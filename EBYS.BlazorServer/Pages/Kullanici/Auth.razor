@@ -1,0 +1,65 @@
+﻿@page "/auth"
+@using Blazored.FluentValidation
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Kullanici;
+@using System.Security.Claims;
+@inject IHttpContextAccessor IHttpContextAccessor
+@inject IKullaniciService _kullaniciService
+@inject IJSRuntime JS
+
+<div class="container">
+    <h1>Profil Güncelleme</h1>
+    <EditForm Model="updateDto" OnValidSubmit="SaveData">
+        <FluentValidationValidator />
+        <div class="mb-3">
+            <label for="name" class="form-label">Ad</label>
+            <input type="text" class="form-control" @bind="updateDto.Ad" id="name" placeholder="Adınızı girin">
+            <ValidationMessage For="@(() =>updateDto.Ad)" />
+
+        </div>
+        <div class="mb-3">
+            <label for="username" class="form-label">Kullanıcı Adı</label>
+            <input type="text" class="form-control" @bind="updateDto.KullaniciAdi" id="username" placeholder="Kullanıcı adınızı girin">
+            <ValidationMessage For="@(() =>updateDto.KullaniciAdi)" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Şifre</label>
+            <input type="password" class="form-control" @bind="updateDto.Sifre" id="password" placeholder="Şifrenizi girin">
+            <ValidationMessage For="@(() =>updateDto.Sifre)" />
+        </div>
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+    </EditForm>
+</div>
+
+@code {
+    private KullaniciListDto kullaniciListDto;
+    private UpdateKullaniciDto updateDto = new();
+
+    private async Task SetUser()
+    {
+        string userId = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+
+        kullaniciListDto = await _kullaniciService.GetKullanici(Guid.Parse(userId));
+        updateDto.Id = kullaniciListDto.Id;
+        updateDto.Ad = kullaniciListDto.Ad;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetUser();
+    }
+
+    private async Task SaveData()
+    {
+        var result = await _kullaniciService.UpdateKullanici(updateDto);
+
+        await JS.InvokeVoidAsync("resultPopUp", result);
+
+        if (result)
+        {
+            await SetUser();
+        }
+    }
+
+
+}

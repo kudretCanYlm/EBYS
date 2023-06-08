@@ -1,0 +1,43 @@
+version: '3.4'
+
+services:
+
+  amssql:
+    container_name: amssql_ebys
+    restart: always
+    ports:
+        - "1433:1433"
+    environment:
+      SA_PASSWORD: "SwN12345678"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+  prometheus:
+    container_name: prometheus_ebys
+    ports:
+      - "30090:9090"
+    environment:
+      - TZ=UTC
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    container_name: grafana_ebys
+    ports:
+      - "30091:3000"
+    volumes:
+      - ./grafana-data/data:/var/lib/grafana
+
+  ebys.blazorserver:
+    container_name: ebys
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8042
+      - "ConnectionStrings__EBYS=Server=amssql_ebys,1433;Initial Catalog=EBYSApp;User ID=SA; Password=SwN12345678;TrustServerCertificate=true"
+    ports:
+      - "8042:8042"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

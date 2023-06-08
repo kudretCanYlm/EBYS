@@ -1,0 +1,72 @@
+﻿@using System.Security.Claims;
+@inject IHttpContextAccessor IHttpContextAccessor
+<div class="top-row ps-3 navbar navbar-dark">
+	<div class="container-fluid">
+		<a class="navbar-brand" href="">EBYS.BlazorServer</a>
+		<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+	</div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+	<nav class="flex-column">
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Home
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="departman">
+				<span class="oi oi-briefcase" aria-hidden="true"></span> Departman
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="personel">
+				<span class="oi oi-person" aria-hidden="true"></span> Personel
+			</NavLink>
+		</div>
+		@if (role == "Admin")
+		{
+			<div class="nav-item px-3">
+
+				<NavLink class="nav-link" href="sirket">
+					<span class="oi oi-home" aria-hidden="true"></span> Şirket
+				</NavLink>
+
+			</div>
+			<div class="nav-item px-3">
+				<NavLink class="nav-link" href="kullanici">
+					<span class="oi oi-people" aria-hidden="true"></span> Kullanıcı
+				</NavLink>
+			</div>
+		}
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="gorev">
+				<span class="oi oi-task" aria-hidden="true"></span> Görev
+			</NavLink>
+		</div>
+		<div class="nav-item px-3">
+			<NavLink class="nav-link" href="logout">
+				<span class="oi oi-account-logout" aria-hidden="true"></span> Çıkış
+			</NavLink>
+		</div>
+	</nav>
+</div>
+
+@code {
+	private bool collapseNavMenu = true;
+	private string role;
+
+	private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+	protected override void OnInitialized()
+	{
+		role = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+	}
+
+	private void ToggleNavMenu()
+	{
+		collapseNavMenu = !collapseNavMenu;
+	}
+}

@@ -1,0 +1,327 @@
+﻿@page "/personel"
+@using Blazored.FluentValidation
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Departman;
+@using EBYS.BusinessLayer.Dtos.Personel;
+@using EBYS.BusinessLayer.Dtos.Sirket;
+@inject IPersonelService _personelService;
+@inject IDepartmanService _departmanService;
+@inject ISirketService _sirketService;
+@inject IJSRuntime JS
+@attribute [Authorize(Roles = "Admin,User")]
+
+<h2>Personel İşlemleri</h2>
+<PageTitle>Personel</PageTitle>
+
+<button @onclick="ShowCreateModal" class="btn btn-success mt-3 mb-1">
+	Personel Ekle
+</button>
+
+@if (personelList == null)
+{
+	<p><em>Yükleniyor...</em></p>
+}
+else
+{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Personel Id</th>
+				<th>Personel Adı</th>
+				<th>Personel Soyadı</th>
+				<th>Şirket Adı</th>
+				<th>Departman Adı</th>
+				<th>Sil</th>
+				<th>Güncelle</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var personel in personelList)
+			{
+				<tr>
+					<td>@personel.Id</td>
+					<td>@personel.Ad</td>
+					<td>@personel.Soyad</td>
+					<td>@personel.SirketName</td>
+					<td>@personel.DepartmanName</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeletePersonel(personel.Id)">
+							Sil
+						</button>
+					</td>
+					<td>
+						<button class="btn btn-warning" @onclick="()=>ShowUpdateModal(personel)">
+							Güncelle
+						</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+@if (showCreateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Personel Ekle</h5>
+					<button type="button" class="close" @onclick="CloseCreateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@createDto" OnValidSubmit="CreateData">
+						<FluentValidationValidator />
+
+						<div class="form-group">
+							<label for="Ad">Personel Adı:</label>
+							<input type="text" @bind="createDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Ad)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Personel Soyad:</label>
+							<input type="text" @bind="createDto.Soyad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Soyad)" />
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Personel Departman:</label>
+							<select @bind="@createDto.DepartmanId" class="form-control">
+								@if (departmanList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Departman Seç</option>
+
+									@foreach (var departman in departmanList)
+									{
+										<option value="@departman.Id">@departman.Ad</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>createDto.DepartmanId)" />
+
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Personel Şirket:</label>
+							<select @bind="@createDto.SirketId" class="form-control">
+								@if (sirketList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Şirket Seç</option>
+
+									@foreach (var sirket in sirketList)
+									{
+										<option value="@sirket.Id">@sirket.Ad</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>createDto.SirketId)" />
+
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@if (showUpdateModal)
+{
+	<div id="updateModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Personel Güncelle</h5>
+					<button type="button" class="close" @onclick="CloseUpdateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@updateDto" OnValidSubmit="SaveData">
+						<FluentValidationValidator />
+
+						<div class="form-group">
+							<label for="Ad">Personel Adı:</label>
+							<input type="text" @bind="updateDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Ad)" />
+						</div>
+						<div class="form-group">
+							<label for="Ad">Personel Soyad:</label>
+							<input type="text" @bind="updateDto.Soyad" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Soyad)" />
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Personel Departman:</label>
+							<select @bind="@updateDto.DepartmanId" class="form-control">
+								@if (departmanList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Departman Seç</option>
+
+									@foreach (var departman in departmanList)
+									{
+										<option value="@departman.Id">@departman.Ad</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>updateDto.DepartmanId)" />
+
+						</div>
+
+						<div class="form-group">
+							<label for="Ad">Personel Şirket:</label>
+							<select @bind="@updateDto.SirketId" class="form-control">
+								@if (sirketList == null)
+								{
+									<option value="@Guid.Empty">Loading...</option>
+								}
+								else
+								{
+									<option value="@Guid.Empty">Şirket Seç</option>
+
+									@foreach (var sirket in sirketList)
+									{
+										<option value="@sirket.Id">@sirket.Ad</option>
+									}
+								}
+							</select>
+							<ValidationMessage For="@(() =>updateDto.SirketId)" />
+
+						</div>
+
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseUpdateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	private IEnumerable<PersonelDto> personelList;
+	private IEnumerable<SirketDto> sirketList;
+	private IEnumerable<DepartmanDto> departmanList;
+
+	private bool showUpdateModal = false;
+	private bool showCreateModal = false;
+
+	private UpdatePersonelDto updateDto = new();
+	private CreatePersonelDto createDto = new();
+
+	private async Task SetPersonelList()
+	{
+		personelList = await _personelService.GetPersonels();
+	}
+
+	private async Task SetSirketList()
+	{
+		sirketList = await _sirketService.GetSirkets();
+	}
+
+	private async Task SetDepartmanList()
+	{
+		departmanList = await _departmanService.GetDepartmans();
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await SetPersonelList();
+	}
+
+	private async Task DeletePersonel(Guid id)
+	{
+		var status = await JS.InvokeAsync<bool>("deletePopUp");
+
+		if (status == true)
+		{
+			var result = await _personelService.DeletePersonel(id);
+			await JS.InvokeVoidAsync("resultPopUp", result);
+			if (result)
+				await SetPersonelList();
+		}
+	}
+
+
+	private async Task ShowUpdateModal(PersonelDto personelDto)
+	{
+		await SetDepartmanList();
+		await SetSirketList();
+
+		updateDto.Id = personelDto.Id;
+		updateDto.Ad = personelDto.Ad;
+		updateDto.Soyad = personelDto.Soyad;
+		updateDto.SirketId = personelDto.SirketId;
+		updateDto.DepartmanId = personelDto.DepartmanId;
+
+		await JS.InvokeVoidAsync("openUpdateModal");
+		showUpdateModal = true;
+	}
+
+	private async Task CloseUpdateModal()
+	{
+		await JS.InvokeVoidAsync("closeUpdateModal");
+		showUpdateModal = false;
+	}
+
+	private async Task ShowCreateModal()
+	{
+		await SetDepartmanList();
+		await SetSirketList();
+		await JS.InvokeVoidAsync("openCreateModal");
+		showCreateModal = true;
+	}
+
+	private async Task CloseCreateModal()
+	{
+		await JS.InvokeVoidAsync("closeCreateModal");
+		showCreateModal = false;
+	}
+
+	private async Task CreateData()
+	{
+		await _personelService.CreatePersonel(createDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", true);
+
+		await SetPersonelList();
+		await CloseCreateModal();
+	}
+
+	private async Task SaveData()
+	{
+
+		var result = await _personelService.UpdatePersonel(updateDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", result);
+
+		if (result)
+		{
+			await SetPersonelList();
+			await CloseUpdateModal();
+		}
+	}
+
+}

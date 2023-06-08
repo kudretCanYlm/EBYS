@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  amssql:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+  
+  prometheus:
+    image: ubuntu/prometheus
+  
+  grafana:
+    image: grafana/grafana
+
+  ebys.blazorserver:
+    image: ${DOCKER_REGISTRY-}ebysblazorserver
+    build:
+      context: .
+      dockerfile: EBYS.BlazorServer/Dockerfile
+
+volumes:
+  mssql-data:

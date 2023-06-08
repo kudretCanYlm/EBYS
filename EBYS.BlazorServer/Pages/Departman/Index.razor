@@ -1,0 +1,218 @@
+﻿@page "/departman"
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Departman;
+@using FluentValidation;
+@using Blazored.FluentValidation
+@inject IDepartmanService _departmanService;
+@inject IJSRuntime JS
+@attribute [Authorize(Roles ="User,Admin")]
+
+<h2>Departman İşlemleri</h2>
+<PageTitle>Departman</PageTitle>
+
+
+<button @onclick="ShowCreateModal" class="btn btn-success mt-3 mb-1">
+	Departman Ekle
+</button>
+
+<table id="myDataTable" class="table">
+	<thead>
+		<tr>
+			<th>Departman Id</th>
+			<th>Departman Adı</th>
+			<th>Sil</th>
+			<th>Güncelle</th>
+		</tr>
+	</thead>
+	<tbody>
+		@if (departmanList == null)
+		{
+			<tr>
+				<td>yükleniyor</td>
+				<td>yükleniyor</td>
+				<td>
+					yükleniyor
+				</td>
+				<td>
+					yükleniyors
+				</td>
+			</tr>
+		}
+		else
+		{
+
+			@foreach (var departman in departmanList)
+			{
+				<tr>
+					<td>@departman.Id</td>
+					<td>@departman.Ad</td>
+					<td>
+						<button class="btn btn-danger" @onclick="()=>DeleteDepartman(departman.Id)">
+							Sil
+						</button>
+					</td>
+					<td>
+						<button class="btn btn-warning" @onclick="()=>ShowUpdateModal(departman)">
+							Güncelle
+						</button>
+					</td>
+				</tr>
+			}
+
+
+		}
+	</tbody>
+</table>
+
+@if (showUpdateModal)
+{
+	<div id="updateModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Departman Güncelle</h5>
+					<button type="button" class="close" @onclick="CloseUpdateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@updateDto" OnValidSubmit="SaveData">
+						<FluentValidationValidator />
+						<div class="form-group">
+							<label for="Ad">Departman Adı:</label>
+							<input type="text" for="Ad" name="Ad" @bind="updateDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>updateDto.Ad)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseUpdateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+
+@if (showCreateModal)
+{
+	<div id="createModal" class="modal show d-block" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Departman Ekle</h5>
+					<button type="button" class="close" @onclick="CloseCreateModal">
+						<span>&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="@createDto" OnValidSubmit="CreateData">
+						<FluentValidationValidator />
+						<div class="form-group">
+							<label for="Ad">Departman Adı:</label>
+							<input type="text" for="Ad" name="Ad" @bind="createDto.Ad" class="form-control" />
+							<ValidationMessage For="@(() =>createDto.Ad)" />
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" @onclick="CloseCreateModal">Kapat</button>
+							<button type="submit" class="btn btn-primary">Kaydet</button>
+						</div>
+					</EditForm>
+				</div>
+
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+
+	private IEnumerable<DepartmanDto> departmanList;
+	private bool showUpdateModal = false;
+	private bool showCreateModal = false;
+
+	private UpdateDepartmanDto updateDto = new();
+	private CreateDepartmanDto createDto = new();
+
+	private async Task SetDepartmanList()
+	{
+		departmanList = await _departmanService.GetDepartmans();
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await SetDepartmanList();
+	}
+
+
+
+	private async Task DeleteDepartman(Guid id)
+	{
+		var status = await JS.InvokeAsync<bool>("deletePopUp");
+
+		if (status == true)
+		{
+			var result = await _departmanService.DeleteDepartman(id);
+			await JS.InvokeVoidAsync("resultPopUp", result);
+			if (result)
+				await SetDepartmanList();
+		}
+
+	}
+
+	private async Task ShowUpdateModal(DepartmanDto departmanDto)
+	{
+		updateDto.Id = departmanDto.Id;
+		updateDto.Ad = departmanDto.Ad;
+
+		await JS.InvokeVoidAsync("openUpdateModal");
+		showUpdateModal = true;
+	}
+
+	private async Task CloseUpdateModal()
+	{
+		await JS.InvokeVoidAsync("closeUpdateModal");
+		showUpdateModal = false;
+	}
+
+	private async Task ShowCreateModal()
+	{
+		await JS.InvokeVoidAsync("openCreateModal");
+		showCreateModal = true;
+	}
+
+	private async Task CloseCreateModal()
+	{
+		await JS.InvokeVoidAsync("closeCreateModal");
+		showCreateModal = false;
+	}
+
+	private async Task SaveData()
+	{
+
+		var result = await _departmanService.UpdateDepartman(updateDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", result);
+
+		if (result)
+		{
+			await SetDepartmanList();
+			await CloseUpdateModal();
+		}
+	}
+
+	private async Task CreateData()
+	{
+		await _departmanService.AddDepartman(createDto);
+
+		await JS.InvokeVoidAsync("resultPopUp", true);
+
+		await SetDepartmanList();
+		await CloseCreateModal();
+	}
+
+
+}
