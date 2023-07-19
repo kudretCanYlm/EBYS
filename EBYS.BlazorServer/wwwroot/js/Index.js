@@ -58,3 +58,27 @@ function resultPopUp(result) {
     }
 
 }
+
+function DrawPie()
+{
+    // Verileri tanımlayın
+    var veriler = {
+        labels: ['Tamamlanan', 'Tamamlanmayan'],
+        datasets: [{
+            data: [60, 30],
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+    };
+
+    // Yapılandırmaları tanımlayın
+    var yapilandirmalar = {
+        responsive: true
+    };
+
+    // Pasta grafiğini çizin
+    var pastaGrafigi = new Chart(document.getElementById('pastaGrafigi'), {
+        type: 'pie',
+        data: veriler,
+        options: yapilandirmalar
+    });
+}
