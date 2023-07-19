@@ -1,23 +1,39 @@
 ﻿@page "/"
 @using System.Security.Claims;
-@attribute [Authorize]
-@inject IHttpContextAccessor IHttpContextAccessor
+@using EBYS.BusinessLayer.Abstract;
+@using EBYS.BusinessLayer.Dtos.Görev;
+@attribute [Authorize(Roles = "User,Admin")]
+@inject IJSRuntime JS
+@inject IGorevService _gorevService
+<PageTitle>Ana Sayfa</PageTitle>
 
-<PageTitle>Index</PageTitle>
+@*@if (gorevPieDto!=null)
+{*@
+<canvas style="max-width:500px;max-height:500px" id="pastaGrafigi"></canvas>
+@*}*@
 
-<h1>Hello, world! @username </h1>
 
-Welcome to your new app.
+@code {
 
-<SurveyPrompt Title="How is Blazor working for you?" />
-
-@code{
-
-	string username = "";
+	//GorevPieDto gorevPieDto;
 
 	protected override void OnInitialized()
 	{
-		username = IHttpContextAccessor.HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+		//gorevPieDto = _gorevService.GetGorevPieChart();
 	}
 
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await JS.InvokeVoidAsync("DrawPie");
+
+		}
+	}
+
+	//private async Task  SetPie()
+	//{
+	//	await JS.InvokeVoidAsync("DrawPie", "pastaGrafigi", "Görev Grafiği", gorevPieDto.Etiketler, gorevPieDto.Degerler);
+
+	//}
 }
