@@ -33,7 +33,7 @@ services:
   ebys.blazorserver:
     container_name: ebys
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8042
       - "ConnectionStrings__EBYS=Server=amssql_ebys,1433;Initial Catalog=EBYSApp;User ID=SA; Password=SwN12345678;TrustServerCertificate=true"
     ports:
