@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EBYS.BusinessLayer.Concrete
 {
-	public class GorevManager:IGorevService
+	public class GorevManager : IGorevService
 	{
 		private readonly IGorevRepository _gorevRepository;
 		private readonly IPersonelRepository _personelRepository;
@@ -38,7 +38,7 @@ namespace EBYS.BusinessLayer.Concrete
 
 		public async Task<bool> DeleteGorev(Guid id)
 		{
-			var gorev=await _gorevRepository.GetById(id);
+			var gorev = await _gorevRepository.GetById(id);
 
 			if (gorev == null)
 				return false;
@@ -47,6 +47,16 @@ namespace EBYS.BusinessLayer.Concrete
 			await _unitOfWork.SaveAsync();
 
 			return true;
+		}
+
+		public GorevPieDto GetGorevPieChart()
+		{
+			var pieDto = new GorevPieDto();
+
+			pieDto.Tamamlanan =_gorevRepository.GetManyQuery(x => x.TamamlandiMi).Count();
+			pieDto.Tamamlananmayan =_gorevRepository.GetManyQuery(x => !x.TamamlandiMi).Count();
+
+			return pieDto;
 		}
 
 		public async Task<IEnumerable<GorevDto>> GetGorevs()

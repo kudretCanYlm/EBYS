@@ -8,5 +8,6 @@ namespace EBYS.BusinessLayer.Abstract
 		public Task<bool> DeleteGorev(Guid id);
 		public Task<bool> UpdateGorev(UpdateGorevDto updateGorevDto);
 		public Task CreateGorev(CreateGorevDto createGorevDto);
+		public GorevPieDto GetGorevPieChart();
 	}
 }
