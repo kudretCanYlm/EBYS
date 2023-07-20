@@ -34,7 +34,7 @@ services:
     depends_on:
       -  prometheus
 
-  ebys.blazorserver:
+  ebys.blazorserver: 
     container_name: ebys
     environment:
       - ASPNETCORE_ENVIRONMENT=Productionss
