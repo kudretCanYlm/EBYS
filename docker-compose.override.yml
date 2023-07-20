@@ -22,6 +22,8 @@ services:
       - TZ=UTC
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - ebys.blazorserver
 
   grafana:
     container_name: grafana_ebys
@@ -29,11 +31,13 @@ services:
       - "30091:3000"
     volumes:
       - ./grafana-data/data:/var/lib/grafana
+    depends_on:
+      -  prometheus
 
   ebys.blazorserver:
     container_name: ebys
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Productionss
       - ASPNETCORE_URLS=http://+:8042
       - "ConnectionStrings__EBYS=Server=amssql_ebys,1433;Initial Catalog=EBYSApp;User ID=SA; Password=SwN12345678;TrustServerCertificate=true"
     ports:
@@ -41,3 +45,5 @@ services:
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - amssql
