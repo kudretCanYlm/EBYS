@@ -11,7 +11,7 @@ COPY ["EBYS.BlazorServer/EBYS.BlazorServer.csproj", "EBYS.BlazorServer/"]
 COPY ["EBYS.BusinessLayer/EBYS.BusinessLayer.csproj", "EBYS.BusinessLayer/"]
 COPY ["EBYS.DataAccesLayer/EBYS.DataAccesLayer.csproj", "EBYS.DataAccesLayer/"]
 COPY ["EBYS.EntityLayer/EBYS.EntityLayer.csproj", "EBYS.EntityLayer/"]
-RUN dotnet restore "EBYS.BlazorServer/EBYS.BlazorServer.csproj"
+RUN dotnet restore "EBYS.BlazorServer/EBYS.BlazorServer.csproj" --disable-parallel
 COPY . .
 WORKDIR "/src/EBYS.BlazorServer"
 RUN dotnet build "EBYS.BlazorServer.csproj" -c Release -o /app/build
