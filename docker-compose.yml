@@ -3,9 +3,11 @@ version: '3.4'
 services:
   amssql:
     image: mcr.microsoft.com/mssql/server:2017-latest
+    restart: always
   
   prometheus:
     image: ubuntu/prometheus
+    restart: always
   
   #grafana:
   #  image: grafana/grafana
@@ -15,6 +17,7 @@ services:
     build:
       context: .
       dockerfile: EBYS.BlazorServer/Dockerfile
+    restart: always
 
 volumes:
   mssql-data:
