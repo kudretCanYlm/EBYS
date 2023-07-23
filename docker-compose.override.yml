@@ -16,6 +16,7 @@ services:
 
   prometheus:
     container_name: prometheus_ebys
+    restart: always
     ports:
       - "30090:9090"
     environment:
@@ -36,6 +37,7 @@ services:
 
   ebys.blazorserver: 
     container_name: ebys
+    restart: always
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8042
