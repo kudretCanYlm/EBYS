@@ -7,8 +7,8 @@ services:
   prometheus:
     image: ubuntu/prometheus
   
-  grafana:
-    image: grafana/grafana
+  #grafana:
+  #  image: grafana/grafana
 
   ebys.blazorserver:
     image: ${DOCKER_REGISTRY-}ebysblazorserver

@@ -25,14 +25,14 @@ services:
     depends_on:
       - ebys.blazorserver
 
-  grafana:
-    container_name: grafana_ebys
-    ports:
-      - "30091:3000"
-    volumes:
-      - ./grafana-data/data:/var/lib/grafana
-    depends_on:
-      -  prometheus
+  #grafana:
+  #  container_name: grafana_ebys
+  #  ports:
+  #    - "30091:3000"
+  #  volumes:
+  #    - ./grafana-data/data:/var/lib/grafana
+  #  depends_on:
+  #    -  prometheus
 
   ebys.blazorserver: 
     container_name: ebys
